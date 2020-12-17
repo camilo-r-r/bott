@@ -1,12 +1,41 @@
-// This is a simple demo script, feel free to edit or delete it
-// Find a tutorial and the list of availalbe elements at:
-// https://www.pcibex.net/documentation/
+
 
 PennController.ResetPrefix(null) // Shorten command names (keep this line here)
 
 // Show the 'intro' trial first, then all the 'experiment' trials in a random order
 // then send the results and finally show the trial labeled 'bye'
-Sequence("introduction","consent", "instructions","startpractice", "practiceblock", "beginblock1", randomize("block1"), "beginblock2", randomize("block2"), "beginblock3", randomize("block3"), "exitform", "bye" )
+    
+    
+//Create picking function; needed for breaks
+function Pick(set,n) {
+    assert(set instanceof Object, "First argument of pick cannot be a plain string" );
+    n = Number(n);
+    if (isNaN(n) || n<0) 
+        n = 0;
+    this.args = [set];
+    this.runSet = null;
+    set.remainingSet = null;
+    this.run = arrays => {
+        if (this.runSet!==null) return this.runSet;
+        const newArray = [];
+        if (set.remainingSet===null) {
+        if (set.runSet instanceof Array) set.remainingSet = [...set.runSet];
+        else set.remainingSet = arrays[0];
+    }
+        for (let i = 0; i < n && set.remainingSet.length; i++)
+            newArray.push( set.remainingSet.shift() );
+    this.runSet = [...newArray];
+    return newArray;
+}
+}
+    function pick(set, n) { return new Pick(set,n); }
+
+critical = randomize("critical_trials");
+        
+Penncontroller.Sequence("introduction","consent", "instructions","startpractice", "practiceblock", "beginblock1",
+        pick(critical,18),"beginblock2",
+        pick(critical,18),"beginblock3",
+                         pick(critical,18), "exitform", "bye")
 
 
 // What is in Header happens at the beginning of every single trial
@@ -173,7 +202,7 @@ newTrial("beginblock1",
     .remove()
 )
 
-Template("Block1.csv" , row =>
+Template("master_list.csv" , row => PennController("critical_trials",
     newTrial("block1",
     newText("sep", "+++ Ready? +++")
         .settings.css("font-size", "x-large")
@@ -229,7 +258,7 @@ Template("Block1.csv" , row =>
         .wait(),
     getText("nextsentence")
         .remove()
-)
+))
     .log("Group", row.Group)
     .log("Type", row.Type)
     .log("Item", row.Item)
@@ -246,67 +275,7 @@ newTrial("beginblock2",
     .remove()
 )
 
-Template("Block2.csv" , row =>
-    newTrial("block2",
-    newText("sep", "+++ Ready? +++")
-        .settings.css("font-size", "x-large")
-        .print(),
-     newTimer(1000)
-        .start()
-        .wait()
-        .remove(),
-    getText("sep")
-        .remove(),
-    newController("DashedSentence", {s: row.Sentence , mode: "speeded acceptability",
-        wordTime : 200, 
-        wordPauseTime : 40,
-        display: "in place"})
-        .settings.css("font-size", "x-large")
-        .print()
-        .wait(),
-    newText("frameD", " [ D ] ")
-        .settings.css("font-size", "xx-large")
-        .bold()
-        .print(),
-    newText("frameK", " [ K ] ")
-        .settings.css("font-size", "xx-large")
-        .bold()
-        .print(),
-    newText("true", "True")
-        .italic()
-        .print(),
-    newText("false", "False")
-        .italic()
-        .print(),
-    newText("answer", "Press the key 'D' (True) or the key 'K' (False) to answer.")
-        .settings.css("font-size", "medium")
-        .italic()
-        .print(),
-    newCanvas("canvas1", 450,200)
-        .add(135 , 0 , getText("frameD"))
-        .add(155, 40 , getText("true"))
-        .add(300 , 0, getText("frameK"))
-        .add(320 , 40, getText("false"))
-        .add(80, 100, getText("answer"))
-        .print(),
-    newKey("DK")
-        .log()
-        .wait(),
-    getCanvas("canvas1")
-        .remove(),
-    newText("nextsentence", "Press the SPACEBAR for the next sentence.")
-        .settings.css("font-size", "x-large")
-        .print()
-        .log(),
-    newKey(" ")
-        .wait(),
-    getText("nextsentence")
-        .remove()
-)
-    .log("Group", row.Group)
-    .log("Type", row.Type)
-    .log("Item", row.Item)
-)
+
 
 newTrial("beginblock3",
     newText("space","This marks the end of Block 2 and the start of Block 3. Press the SPACEBAR to continue.")
@@ -319,67 +288,16 @@ newTrial("beginblock3",
     .remove()
 )
 
-Template("Block3.csv" , row =>
-    newTrial("block3",
-    newText("sep", "+++ Ready? +++")
-        .settings.css("font-size", "x-large")
-        .print(),
-     newTimer(1000)
-        .start()
-        .wait()
-        .remove(),
-    getText("sep")
-        .remove(),
-    newController("DashedSentence", {s: row.Sentence , mode: "speeded acceptability",
-        wordTime : 200, 
-        wordPauseTime : 40,
-        display: "in place"})
-        .settings.css("font-size", "x-large")
-        .print()
-        .wait(),
-    newText("frameD", " [ D ] ")
-        .settings.css("font-size", "xx-large")
-        .bold()
-        .print(),
-    newText("frameK", " [ K ] ")
-        .settings.css("font-size", "xx-large")
-        .bold()
-        .print(),
-    newText("true", "True")
-        .italic()
-        .print(),
-    newText("false", "False")
-        .italic()
-        .print(),
-    newText("answer", "Press the key 'D' (True) or the key 'K' (False) to answer.")
-        .settings.css("font-size", "medium")
-        .italic()
-        .print(),
-    newCanvas("canvas1", 450,200)
-        .add(135 , 0 , getText("frameD"))
-        .add(155, 40 , getText("true"))
-        .add(300 , 0, getText("frameK"))
-        .add(320 , 40, getText("false"))
-        .add(80, 100, getText("answer"))
-        .print(),
-    newKey("DK")
-        .log()
-        .wait(),
-    getCanvas("canvas1")
-        .remove(),
-    newText("nextsentence", "Press the SPACEBAR for the next sentence.")
-        .settings.css("font-size", "x-large")
-        .print()
-        .log(),
-    newKey(" ")
-        .wait(),
-    getText("nextsentence")
-        .remove()
-)
+
     .log("Group", row.Group)
     .log("Type", row.Type)
     .log("Item", row.Item)
+    
+    
 )
+    
+    PennController.SendResults( "send" );
+
 newTrial("exitform",  
     newHtml("debrief", "debrief.html")
     .print()
